@@ -101,12 +101,42 @@ class Player:
                     self.max_consecutive_losses = consecutive_losses
     
     def labouchere_system(self, target):
-        nums = [target/10 for _ in range(10)]
-        print(nums)
+        divisor = 10
+        nums = [target/divisor for _ in range(divisor)]
+
+        consecutive_losses = 0
+        while (self.game.round < self.max_round
+               and self.bankroll > 0
+               and len(nums) > 0):
+            bet = nums[0] + nums[-1]
+            bet = min(self.bankroll, bet)
+
+            self.game.roll()
+            if self.game.has_won():
+                nums = nums[1:-1]
+                consecutive_losses = 0
+                self.bankroll += bet
+                self.game.round += 1
+            else:
+                consecutive_losses += 1
+                self.bankroll -= bet
+                nums.append(bet)
+                if consecutive_losses > self.max_consecutive_losses:
+                    self.max_consecutive_losses = consecutive_losses
+            # self.print_round(bet)
 
 
 repeat = 100
 bankroll = 10000
+
+losses = 0
+for _ in range(repeat):
+    player = Player(bankroll)
+    player.labouchere_system(target=500)
+    if player.bankroll <= 0:
+        losses += 1
+
+print("Lost", losses, "- with labouchere system")
 
 losses = 0
 for _ in range(repeat):
@@ -130,15 +160,6 @@ losses = 0
 for _ in range(repeat):
     player = Player(bankroll)
     player.d_alembert_system(base_unit=0.01)
-    if player.bankroll <= 0:
-        losses += 1
-
-print("Lost", losses, "- with d'alembert system")
-
-losses = 0
-for _ in range(1):
-    player = Player(bankroll)
-    player.labouchere_system(target=50)
     if player.bankroll <= 0:
         losses += 1
 
