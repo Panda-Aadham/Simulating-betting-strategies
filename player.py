@@ -102,6 +102,7 @@ class Player:
     
     def labouchere_system(self, target):
         divisor = 10
+        self.max_bet = -1
         nums = [target/divisor for _ in range(divisor)]
 
         consecutive_losses = 0
@@ -110,6 +111,7 @@ class Player:
                and len(nums) > 0):
             bet = nums[0] + nums[-1]
             bet = min(self.bankroll, bet)
+            self.max_bet = max(bet, self.max_bet)
 
             self.game.roll()
             if self.game.has_won():
@@ -125,42 +127,42 @@ class Player:
                     self.max_consecutive_losses = consecutive_losses
             # self.print_round(bet)
 
+def simulate(
+        system,
+        parameters = (),
+        bankroll = 10000,
+        repeat = 100,
+        ):
+    total_losses = 0
+    for _ in range(repeat):
+        player = Player(bankroll)
+        system_func = getattr(player, system)
+        system_func(parameters)
+        if player.bankroll <= 0:
+            total_losses += 1
+    
+    print(f"Lost {total_losses} - with {system} system")
 
-repeat = 100
-bankroll = 10000
+initial_bet = 1
+simulate(
+    system = "martingale_system",
+    parameters = (initial_bet)
+)
 
-losses = 0
-for _ in range(repeat):
-    player = Player(bankroll)
-    player.labouchere_system(target=500)
-    if player.bankroll <= 0:
-        losses += 1
+base_unit = 0.01
+simulate(
+    system = "d_alembert_system",
+    parameters = (base_unit)
+)
 
-print("Lost", losses, "- with labouchere system")
+base_unit = 0.001
+simulate(
+    system = "fibonacci_system",
+    parameters = (base_unit)
+)
 
-losses = 0
-for _ in range(repeat):
-    player = Player(bankroll)
-    player.martingale_system(initial_bet=1)
-    if player.bankroll <= 0:
-        losses += 1
-
-print("Lost", losses, "- with martingale system")
-
-losses = 0
-for _ in range(repeat):
-    player = Player(bankroll)
-    player.fibonacci_system(base_unit=0.001)
-    if player.bankroll <= 0:
-        losses += 1
-
-print("Lost", losses, "- with fibonacci system")
-
-losses = 0
-for _ in range(repeat):
-    player = Player(bankroll)
-    player.d_alembert_system(base_unit=0.01)
-    if player.bankroll <= 0:
-        losses += 1
-
-print("Lost", losses, "- with d'alembert system")
+target = 50
+simulate(
+    system = "labouchere_system",
+    parameters = (target)
+)
