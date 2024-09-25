@@ -100,6 +100,7 @@ class Player:
                 if consecutive_losses > self.max_consecutive_losses:
                     self.max_consecutive_losses = consecutive_losses
     
+    # Target as int representing target profit
     def labouchere_system(self, target):
         divisor = 10
         self.max_bet = -1
@@ -130,39 +131,52 @@ class Player:
 def simulate(
         system,
         parameters = (),
-        bankroll = 10000,
+        bankroll = 1000,
         repeat = 100,
         ):
     total_losses = 0
+    max_bet = 0
     for _ in range(repeat):
         player = Player(bankroll)
         system_func = getattr(player, system)
         system_func(parameters)
         if player.bankroll <= 0:
             total_losses += 1
+            max_bet = max(max_bet, player.max_bet)
+            print(player.max_bet)
     
-    print(f"Lost {total_losses} - with {system} system")
+    print(f"Max bet: {max_bet}")
+    print(f"Lost: {total_losses} of {repeat} with {system}")
+    print(f"Percantage of games lost = {total_losses/repeat*100}%")
 
-initial_bet = 1
-simulate(
-    system = "martingale_system",
-    parameters = (initial_bet)
-)
+    total_bankroll = bankroll * repeat
+    profited = (repeat - total_losses) * 50
+    losses = total_losses * bankroll
+    print(f"Total bankroll = {total_bankroll}")
+    print(f"Final bankroll = {total_bankroll + profited - losses}")
 
-base_unit = 0.01
-simulate(
-    system = "d_alembert_system",
-    parameters = (base_unit)
-)
+# initial_bet = 1
+# simulate(
+#     system = "martingale_system",
+#     parameters = (initial_bet)
+# )
 
-base_unit = 0.001
-simulate(
-    system = "fibonacci_system",
-    parameters = (base_unit)
-)
+# base_unit = 0.01
+# simulate(
+#     system = "d_alembert_system",
+#     parameters = (base_unit)
+# )
 
-target = 50
+# base_unit = 0.001
+# simulate(
+#     system = "fibonacci_system",
+#     parameters = (base_unit)
+# )
+
+target = 25
 simulate(
     system = "labouchere_system",
-    parameters = (target)
+    parameters = (target),
+    bankroll = 1000,
+    repeat=1000
 )
