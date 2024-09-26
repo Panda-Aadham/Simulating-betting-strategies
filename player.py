@@ -115,11 +115,11 @@ class Player:
             self.max_bet = max(bet, self.max_bet)
 
             self.game.roll()
+            self.game.round += 1
             if self.game.has_won():
                 nums = nums[1:-1]
                 consecutive_losses = 0
                 self.bankroll += bet
-                self.game.round += 1
             else:
                 consecutive_losses += 1
                 self.bankroll -= bet
@@ -134,18 +134,19 @@ def simulate(
         bankroll = 1000,
         repeat = 100,
         ):
+    ronuds_played = 0
     total_losses = 0
     max_bet = 0
     for _ in range(repeat):
         player = Player(bankroll)
         system_func = getattr(player, system)
         system_func(parameters)
+        ronuds_played += player.game.round
         if player.bankroll <= 0:
             total_losses += 1
             max_bet = max(max_bet, player.max_bet)
-            print(player.max_bet)
     
-    print(f"Max bet: {max_bet}")
+    print(f"Rounds played: {ronuds_played} | Max bet: {max_bet}")
     print(f"Lost: {total_losses} of {repeat} with {system}")
     print(f"Percantage of games lost = {total_losses/repeat*100}%")
 
